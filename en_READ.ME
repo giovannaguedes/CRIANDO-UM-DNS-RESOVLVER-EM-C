@@ -1,0 +1,125 @@
+CREATING-A-DNS-RESOLVER-IN-C
+
+The code below shows how to create a C program that takes a domain and returns its IP address, as well as how to scan subdomains using a .txt file.
+
+⚠️ For educational purposes only • Developed by M!ss s3c
+
+📝 Step-by-step guide: Creating and running your program
+
+1. Create the program file
+
+In the terminal, type:
+
+nano resover.c
+
+
+Add the following basic code:
+
+#include <stdio.h>
+#include <netdb.h>    
+#include <arpa/inet.h>
+
+int main(int argc, char *argv[]){
+    if(argc <= 1){
+        printf("Usage: ./resover www.example.com\n");
+        return 0;
+    } else {
+        struct hostent *target = gethostbyname(argv[1]);
+        if(target == NULL){
+            printf("An error occurred :( \n");
+        } else {
+            printf("IP: %s\n", inet_ntoa(*((struct in_addr *)target->h_addr)));
+        }
+    }
+}
+
+2. Compile the program
+
+In the terminal, type:
+
+gcc resover.c -o resover
+
+
+gcc → C compiler
+
+-o resover → name of the executable
+
+3. Run the program
+./resover www.example.com
+
+
+Expected output:
+
+IP: 192.168.0.1
+
+4. Creating a subdomain scanner
+
+You can use a .txt file containing possible subdomains and scan the network:
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+
+int main(int argc, char *argv[])
+{
+    char *target;
+    struct hostent *host;
+    char *result;
+    char txt[50];
+    FILE *file;
+
+    if(argc < 3){
+        printf("------------------------------------------------\n");
+        printf("--------- DNSRATO V1.0 --------\n");
+        printf("Usage: ./dnsrato target.com subdomains.txt\n");
+        printf("M!ss s3c -- ig:@m!sss3c\n");
+        printf("------------------------------------------------\n");
+        return 0;
+    }
+
+    target = argv[1];
+    file = fopen(argv[2],"r");
+    if(file == NULL){
+        printf("Error opening the subdomain file.\n");
+        return 1;
+    }
+
+    while(fscanf(file, "%s", txt) != EOF){
+        result = (char *) strcat(txt, target);
+        host = gethostbyname(result);
+        if(host == NULL){
+            continue;
+        }
+        printf("HOST FOUND: %s =====> IP: %s \n", result, inet_ntoa(*(struct in_addr *)host->h_addr));
+    }
+
+    fclose(file);
+}
+
+5. Run the subdomain scanner
+./dnsrato target.com subdomains.txt
+
+
+subdomains.txt → list of possible subdomains, e.g., admin, mail, ftp.
+
+Expected output:
+
+HOST FOUND: admin.target.com =====> IP: 192.168.0.10
+HOST FOUND: ftp.target.com =====> IP: 192.168.0.11
+
+👉 What you learned here
+
+gethostbyname() → converts a domain to an IP address.
+
+inet_ntoa() → converts internal IP to readable ASCII format.
+
+.txt files → allow creating subdomain lists for scanning.
+
+Input validation → checks if arguments are correct before running.
+
+Loops and string concatenation → automate subdomain scanning.
+
+Important note → this type of scanning should only be used in authorized environments and for educational purposes.
